@@ -1,0 +1,202 @@
+"""This file is designed to run the procrastinator bot."""
+import random
+import time
+import telebot
+from telebot import types
+
+file_path = "Untitled.txt"
+with open(file_path, 'r', encoding='utf-8') as f:
+    cities = [word.strip() for word in f if word.strip()]
+
+bot = telebot.TeleBot('7373916813:AAEnr3G6XNUzbxaXUqDhUtnG6KrpXi7zbjs')
+
+user_context = {}
+
+
+@bot.message_handler(commands=['start'])
+
+
+def start(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("Ты кто?")
+    bot.send_message(message.chat.id, "Буу! Испугался? Не бойся. Я друг. Я тебя не обижу. Иди сюда, иди ко мне, сядь рядом со мной, посмотри мне в глаза. Ты видишь меня? Я тоже тебя вижу. Давай смотреть друг на друга до тех пор, пока наши глаза не устанут. Ты не хочешь? Почему? Что-то не так?", reply_markup=markup)
+
+    
+@bot.message_handler(func=lambda message: message.text in ["Ты кто?"])
+
+
+def introduction(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("Отдохнуть", "Готовиться к сессии")
+    bot.send_message(message.chat.id, "Я же сказал, не бойся, я друг! Я помогу тебе расставлять приоритеты правильно! Ты хочешь отдохнуть или работать?", reply_markup=markup)
+
+
+@bot.message_handler(func=lambda message: message.text in ["Отдохнуть", "Готовиться к сессии"])
+
+
+def handle_choice(message):
+    if message.text == "Отдохнуть":
+        show_relax_options(message)
+    else:
+        chat_id = message.chat.id
+        user_context[chat_id] = {'attempts': 0}
+        work(message, user_context[chat_id]['attempts'])
+
+
+maybenot = ["Вы уверены, что хотите этого?", "Подумайте хорошенько. Вы всегда успеете повторить билеты, но когда ещё вы найдёте время для себя?", "А подушка такая мягкая, а одеялко такое тёплое...", "Может, прокрастинировать — ваше истинное призвание? Может, ну эту математику?", "В крайнем случае в академ уйдёшь..."]
+
+
+def work(message, attempts):
+    chat_id = message.chat.id
+    if attempts >= 5:
+        bot.send_message(message.chat.id, "Хорошо, работайте. Не буду вам мешать! Всё-таки я бот-прокрастинатор. Но если вдруг захочешь отдохнуть, ты, это, заходи если что.")
+        del user_context[chat_id]
+        return
+    markup = types.InlineKeyboardMarkup()
+    yes_button = types.InlineKeyboardButton(text="Да, я хочу учиться", callback_data='work_yes')
+    no_button = types.InlineKeyboardButton(text="Нет, я хочу отдохнуть", callback_data='back_to_relax')
+    markup.add(yes_button, no_button)
+    user_context[chat_id]['attempts'] = attempts
+    bot.send_message(message.chat.id, random.choice(maybenot), reply_markup=markup)
+
+
+def show_relax_options(message):
+    markup = types.InlineKeyboardMarkup()
+    timer_button = types.InlineKeyboardButton(text="Поставить таймер", callback_data='timer')
+    game_button = types.InlineKeyboardButton(text="Поиграть в города", callback_data='word')
+    video_button = types.InlineKeyboardButton(text="Посмотреть мотивирующие видео", callback_data='video')
+    markup.add(timer_button, game_button)
+    markup.add(video_button)
+    bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+
+
+def callback_worker(call):
+    chat_id = call.message.chat.id
+    if call.data == 'timer':
+        bot.send_message(call.message.chat.id, "Сколько минут вы хотите спать?")
+        bot.register_next_step_handler(call.message, get_timer)
+    elif call.data == 'word':
+        start_game(call.message)
+    elif call.data == 'video':
+        video(call.message)
+    elif call.data == 'back_to_relax':
+        show_relax_options(call.message)
+    elif call.data == 'work_yes':
+        user_context[chat_id]['attempts'] += 1
+        work(call.message, user_context[chat_id]['attempts'])
+
+
+wakeup = ["Я бы пожелал тебе доброго утра, но мы-то знаем, что утром добрым не бывает", "Как спалось? Сессия не снилась?", "Удачи выжить...", "Доброе утро, последний герой!", "Может, стоит переставить таймер ещё на часок?"]
+
+
+def get_timer(message):
+    try:
+        minutes = float(message.text.replace(",","."))
+        if minutes > 0:
+            bot.send_message(message.chat.id, f"Таймер установлен на {minutes} минут.")
+            time.sleep(minutes * 60)
+            bot.send_message(message.chat.id, random.choice(wakeup))
+        else:
+            bot.send_message(message.chat.id, "Таймер можно поставить только на положительное число минут. Попробуйте ещё раз.")
+
+    except ValueError:
+        bot.send_message(message.chat.id, "Пожалуйста, введите число. Попробуйте ещё раз.")
+
+
+game_state = {}
+used_cities = []
+
+def start_game(message):
+    chat_id = message.chat.id
+    game_state[chat_id] = {'last_city': None, 'turn': 'user'}
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add("Не хочу больше играть")
+    bot.send_message(message.chat.id, 'Напишите город России', reply_markup=markup)
+    bot.register_next_step_handler(message, process_word_wrapper)
+
+
+def process_word_wrapper(message):
+    if message.text == "Не хочу больше играть":
+        used_cities.clear()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add("Отдохнуть", "Готовиться к сессии")
+        bot.send_message(message.chat.id, "Ок", reply_markup=markup)
+        return
+    is_game_ended = process_word(message)
+    if not is_game_ended:
+        bot.register_next_step_handler(message, process_word_wrapper)
+    return
+
+
+def process_word(message):
+    chat_id = message.chat.id
+    user_input = message.text.strip().title()
+
+    if chat_id not in game_state: #Обработка случая, когда игра еще не начата
+        bot.send_message(chat_id, "Игра еще не начата. Начните игру командой Отдохнуть->Играть в города")
+        return False
+
+    if not user_input:
+        bot.reply_to(message, "Вы ничего не ввели. Попробуйте ещё раз.")
+        return False
+
+    last_city = game_state[chat_id]['last_city']
+    if last_city is not None:
+        last_letter = get_last_letter(last_city)
+        if not user_input.lower().startswith(last_letter.lower()):
+            bot.reply_to(message, f"Город должен начинаться на букву '{last_letter}'. Попробуйте ещё раз.")
+            return False
+
+    if user_input not in cities:
+        bot.reply_to(message, "Такого города нет в моём списке. Попробуйте другой.")
+        return False
+
+    if user_input.lower() in used_cities:
+        bot.reply_to(message, "Этот город уже был. Попробуйте другой.")
+        return False
+
+    #Общая логика для ходов пользователя и бота:
+    game_state[chat_id]['last_city'] = user_input
+    used_cities.append(user_input.lower())
+
+    last_letter = get_last_letter(user_input)
+    needed_cities = [word for word in cities if word.startswith(last_letter) and word.lower() not in used_cities]
+
+    if needed_cities:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add("Не хочу больше играть")
+        next_city = random.choice(needed_cities)
+        bot.send_message(message.chat.id, next_city, reply_markup=markup)
+        game_state[chat_id]['last_city'] = next_city
+        used_cities.append(next_city.lower())
+        return False
+
+    else:
+        bot.send_message(message.chat.id, "Поздравляю, вы победили!")
+        del game_state[chat_id]
+        used_cities.clear()
+        return True
+
+
+def get_last_letter(city):
+    if len(city) >= 2 and city[-1:] in ('ь', 'ы'):
+        return city[-2].upper()
+    else:
+        return city[-1].upper()
+
+
+videos = ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://www.youtube.com/watch?v=rUBqfCwdY1s", "https://www.youtube.com/watch?v=t6l4w90sQW4", "https://www.youtube.com/watch?v=otS59biyw6c", "https://www.youtube.com/watch?v=urMo0COpCo8","https://www.youtube.com/watch?v=Wl1NCmgXptY", "https://www.youtube.com/watch?v=s3Ima7fTEbQ"]
+
+
+def video(message):
+    markup = types.InlineKeyboardMarkup()
+    youtube_button = types.InlineKeyboardButton(text="Наслаждаться", url=random.choice(videos))
+    markup.add(youtube_button)
+    bot.send_message(message.chat.id, "Конечно, держите!", reply_markup=markup)
+
+
+
+bot.polling(none_stop=True, interval=1)
