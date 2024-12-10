@@ -19,9 +19,16 @@ user_context = {}
 def start(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("Ты кто?")
-    bot.send_message(message.chat.id, "Буу! Испугался? Не бойся. Я друг. Я тебя не обижу. Иди сюда, иди ко мне, сядь рядом со мной, посмотри мне в глаза. Ты видишь меня? Я тоже тебя вижу. Давай смотреть друг на друга до тех пор, пока наши глаза не устанут. Ты не хочешь? Почему? Что-то не так?", reply_markup=markup)
+    start_message = (
+        "Буу! Испугался? Не бойся. Я друг. Я тебя не обижу. "
+        "Иди сюда, иди ко мне, сядь рядом со мной, посмотри мне в глаза. "
+        "Ты видишь меня? Я тоже тебя вижу. "
+        "Давай смотреть друг на друга до тех пор, пока наши глаза не устанут. "
+        "Ты не хочешь? Почему? Что-то не так?"
+    )
+    bot.send_message(message.chat.id, start_message, reply_markup=markup)
 
-    
+
 @bot.message_handler(func=lambda message: message.text in ["Ты кто?"])
 
 
@@ -94,7 +101,7 @@ wakeup = ["Я бы пожелал тебе доброго утра, но мы-т
 
 def get_timer(message):
     try:
-        minutes = float(message.text.replace(",","."))
+        minutes = float(message.text.replace(",", "."))
         if minutes > 0:
             bot.send_message(message.chat.id, f"Таймер установлен на {minutes} минут.")
             time.sleep(minutes * 60)
@@ -108,6 +115,7 @@ def get_timer(message):
 
 game_state = {}
 used_cities = []
+
 
 def start_game(message):
     chat_id = message.chat.id
@@ -135,7 +143,7 @@ def process_word(message):
     chat_id = message.chat.id
     user_input = message.text.strip().title()
 
-    if chat_id not in game_state: #Обработка случая, когда игра еще не начата
+    if chat_id not in game_state:  # Обработка случая, когда игра еще не начата
         bot.send_message(chat_id, "Игра еще не начата. Начните игру командой Отдохнуть->Играть в города")
         return False
 
@@ -158,7 +166,7 @@ def process_word(message):
         bot.reply_to(message, "Этот город уже был. Попробуйте другой.")
         return False
 
-    #Общая логика для ходов пользователя и бота:
+    # Общая логика для ходов пользователя и бота:
     game_state[chat_id]['last_city'] = user_input
     used_cities.append(user_input.lower())
 
@@ -188,7 +196,7 @@ def get_last_letter(city):
         return city[-1].upper()
 
 
-videos = ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://www.youtube.com/watch?v=rUBqfCwdY1s", "https://www.youtube.com/watch?v=t6l4w90sQW4", "https://www.youtube.com/watch?v=otS59biyw6c", "https://www.youtube.com/watch?v=urMo0COpCo8","https://www.youtube.com/watch?v=Wl1NCmgXptY", "https://www.youtube.com/watch?v=s3Ima7fTEbQ"]
+videos = ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://www.youtube.com/watch?v=rUBqfCwdY1s", "https://www.youtube.com/watch?v=t6l4w90sQW4", "https://www.youtube.com/watch?v=otS59biyw6c", "https://www.youtube.com/watch?v=urMo0COpCo8", "https://www.youtube.com/watch?v=Wl1NCmgXptY", "https://www.youtube.com/watch?v=s3Ima7fTEbQ"]
 
 
 def video(message):
@@ -196,7 +204,6 @@ def video(message):
     youtube_button = types.InlineKeyboardButton(text="Наслаждаться", url=random.choice(videos))
     markup.add(youtube_button)
     bot.send_message(message.chat.id, "Конечно, держите!", reply_markup=markup)
-
 
 
 bot.polling(none_stop=True, interval=1)
