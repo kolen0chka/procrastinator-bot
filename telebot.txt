@@ -27,10 +27,13 @@ def start(message):
     bot.send_message(message.chat.id, start_message, reply_markup=markup)
 
 
+relax_or_session = {"Отдохнуть", "Готовиться к сессии"}
+
+
 @bot.message_handler(func=lambda message: message.text in ["Ты кто?"])
 def introduction(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("Отдохнуть", "Готовиться к сессии")
+    markup |= relax_or_session
     var_message = (
         "Я же сказал, не бойся, я друг! "
         "Я помогу тебе расставлять приоритеты правильно! "
@@ -39,7 +42,7 @@ def introduction(message):
     bot.send_message(message.chat.id, var_message, reply_markup=markup)
 
 
-@bot.message_handler(func=lambda message: message.text in ["Отдохнуть", "Готовиться к сессии"])
+@bot.message_handler(func=lambda message: message.text in relax_or_session)
 def handle_choice(message):
     if message.text == "Отдохнуть":
         show_relax_options(message)
@@ -51,9 +54,11 @@ def handle_choice(message):
 
 maybenot = [
     "Вы уверены, что хотите этого?",
-    "Подумайте хорошенько. Вы всегда успеете повторить билеты, но когда ещё вы найдёте время для себя?",
+    """Подумайте хорошенько. Вы всегда успеете повторить билеты, """
+    """но когда ещё вы найдёте время для себя?""",
     "А подушка такая мягкая, а одеялко такое тёплое...",
-    "Может, прокрастинировать — ваше истинное призвание? Может, ну эту математику?",
+    """Может, прокрастинировать — ваше истинное призвание? """
+    """Может, ну эту математику?""",
     "В крайнем случае в академ уйдёшь..."
 ]
 
@@ -91,7 +96,8 @@ def show_relax_options(message):
 def callback_worker(call):
     chat_id = call.message.chat.id
     if call.data == 'timer':
-        bot.send_message(call.message.chat.id, "Сколько минут вы хотите спать?")
+        sleep_min = "Сколько минут вы хотите спать?"
+        bot.send_message(call.message.chat.id, sleep_min)
         bot.register_next_step_handler(call.message, get_timer)
     elif call.data == 'word':
         start_game(call.message)
@@ -121,7 +127,11 @@ def get_timer(message):
             time.sleep(minutes * 60)
             bot.send_message(message.chat.id, random.choice(wakeup))
         else:
-            bot.send_message(message.chat.id, "Таймер можно поставить только на положительное число минут. Попробуйте ещё раз.")
+            timer_error = (
+                "Таймер можно поставить только на положительное число минут. "
+                "Попробуйте ещё раз."
+            )
+            bot.send_message(message.chat.id, timer_error)
 
     except ValueError:
         bot.send_message(message.chat.id, "Пожалуйста, введите число. Попробуйте ещё раз.")
@@ -158,7 +168,11 @@ def process_word(message):
     user_input = message.text.strip().title()
 
     if chat_id not in game_state:  # Обработка случая, когда игра еще не начата
-        bot.send_message(chat_id, "Игра еще не начата. Начните игру командой Отдохнуть->Играть в города")
+        game_error = (
+            "Игра еще не начата. "
+            "Начните игру командой Отдохнуть->Играть в города"
+        )
+        bot.send_message(chat_id, game_error)
         return False
 
     if not user_input:
@@ -210,7 +224,15 @@ def get_last_letter(city):
         return city[-1].upper()
 
 
-videos = ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://www.youtube.com/watch?v=rUBqfCwdY1s", "https://www.youtube.com/watch?v=t6l4w90sQW4", "https://www.youtube.com/watch?v=otS59biyw6c", "https://www.youtube.com/watch?v=urMo0COpCo8", "https://www.youtube.com/watch?v=Wl1NCmgXptY", "https://www.youtube.com/watch?v=s3Ima7fTEbQ"]
+videos = [
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "https://www.youtube.com/watch?v=rUBqfCwdY1s",
+    "https://www.youtube.com/watch?v=t6l4w90sQW4",
+    "https://www.youtube.com/watch?v=otS59biyw6c",
+    "https://www.youtube.com/watch?v=urMo0COpCo8",
+    "https://www.youtube.com/watch?v=Wl1NCmgXptY",
+    "https://www.youtube.com/watch?v=s3Ima7fTEbQ"
+]
 
 
 def video(message):
