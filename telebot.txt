@@ -75,21 +75,28 @@ def work(message, attempts):
         del user_context[chat_id]
         return
     markup = types.InlineKeyboardMarkup()
-    yes_button = types.InlineKeyboardButton(text="Да, я хочу учиться", callback_data='work_yes')
-    no_button = types.InlineKeyboardButton(text="Нет, я хочу отдохнуть", callback_data='back_to_relax')
+    yes_button = types.InlineKeyboardButton(
+        text="Да, я хочу учиться", callback_data='work_yes')
+    no_button = types.InlineKeyboardButton(
+        text="Нет, я хочу отдохнуть", callback_data='back_to_relax')
     markup.add(yes_button, no_button)
     user_context[chat_id]['attempts'] = attempts
-    bot.send_message(message.chat.id, random.choice(maybenot), reply_markup=markup)
+    bot.send_message(
+        message.chat.id, random.choice(maybenot), reply_markup=markup)
 
 
 def show_relax_options(message):
     markup = types.InlineKeyboardMarkup()
-    timer_button = types.InlineKeyboardButton(text="Поставить таймер", callback_data='timer')
-    game_button = types.InlineKeyboardButton(text="Поиграть в города", callback_data='word')
-    video_button = types.InlineKeyboardButton(text="Посмотреть мотивирующие видео", callback_data='video')
+    timer_button = types.InlineKeyboardButton(
+        text="Поставить таймер", callback_data='timer')
+    game_button = types.InlineKeyboardButton(
+        text="Поиграть в города", callback_data='word')
+    video_button = types.InlineKeyboardButton(
+        text="Посмотреть мотивирующие видео", callback_data='video')
     markup.add(timer_button, game_button)
     markup.add(video_button)
-    bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
+    bot.send_message(
+        message.chat.id, "Выберите действие:", reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -111,7 +118,8 @@ def callback_worker(call):
 
 
 wakeup = [
-    "Я бы пожелал тебе доброго утра, но мы-то знаем, что утром добрым не бывает",
+    """Я бы пожелал тебе доброго утра, """
+    """но мы-то знаем, что утром добрым не бывает""",
     "Как спалось? Сессия не снилась?",
     "Удачи выжить...",
     "Доброе утро, последний герой!",
@@ -123,7 +131,8 @@ def get_timer(message):
     try:
         minutes = float(message.text.replace(",", "."))
         if minutes > 0:
-            bot.send_message(message.chat.id, f"Таймер установлен на {minutes} минут.")
+            bot.send_message(
+                message.chat.id, f"Таймер установлен на {minutes} минут.")
             time.sleep(minutes * 60)
             bot.send_message(message.chat.id, random.choice(wakeup))
         else:
@@ -134,7 +143,8 @@ def get_timer(message):
             bot.send_message(message.chat.id, timer_error)
 
     except ValueError:
-        bot.send_message(message.chat.id, "Пожалуйста, введите число. Попробуйте ещё раз.")
+        not_number = "Пожалуйста, введите число. Попробуйте ещё раз."
+        bot.send_message(message.chat.id, not_number)
 
 
 game_state = {}
@@ -146,7 +156,8 @@ def start_game(message):
     game_state[chat_id] = {'last_city': None, 'turn': 'user'}
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("Не хочу больше играть")
-    bot.send_message(message.chat.id, 'Напишите город России', reply_markup=markup)
+    bot.send_message(
+        message.chat.id, 'Напишите город России', reply_markup=markup)
     bot.register_next_step_handler(message, process_word_wrapper)
 
 
@@ -183,11 +194,16 @@ def process_word(message):
     if last_city is not None:
         last_letter = get_last_letter(last_city)
         if not user_input.lower().startswith(last_letter.lower()):
-            bot.reply_to(message, f"Город должен начинаться на букву '{last_letter}'. Попробуйте ещё раз.")
+            wrong_letter = (
+                f"Город должен начинаться на букву '{last_letter}'. "
+                "Попробуйте ещё раз."
+            )
+            bot.reply_to(message, wrong_letter)
             return False
 
     if user_input not in cities:
-        bot.reply_to(message, "Такого города нет в моём списке. Попробуйте другой.")
+        no_city = "Такого города нет в моём списке. Попробуйте другой."
+        bot.reply_to(message, no_city)
         return False
 
     if user_input.lower() in used_cities:
@@ -199,7 +215,10 @@ def process_word(message):
     used_cities.append(user_input.lower())
 
     last_letter = get_last_letter(user_input)
-    needed_cities = [word for word in cities if word.startswith(last_letter) and word.lower() not in used_cities]
+    needed_cities = [
+        word for word in cities if word.startswith(last_letter) and
+        word.lower() not in used_cities
+    ]
 
     if needed_cities:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -237,7 +256,8 @@ videos = [
 
 def video(message):
     markup = types.InlineKeyboardMarkup()
-    youtube_button = types.InlineKeyboardButton(text="Наслаждаться", url=random.choice(videos))
+    youtube_button = types.InlineKeyboardButton(
+        text="Наслаждаться", url=random.choice(videos))
     markup.add(youtube_button)
     bot.send_message(message.chat.id, "Конечно, держите!", reply_markup=markup)
 
