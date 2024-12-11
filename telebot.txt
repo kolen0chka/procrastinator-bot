@@ -1,11 +1,13 @@
 """This file is designed to run the procrastinator bot."""
+# Если у вас не установлен pip, установите,
+# запустив программу "pip install pytelegrambotapi"
 import random
 import time
 import telebot
 from telebot import types
 
 file_path = "Untitled.txt"
-with open(file_path, 'r', encoding='utf-8') as f:
+with open(file_path, 'r', encoding='utf-8') as f:  # Укажите свой путь до файла
     cities = [word.strip() for word in f if word.strip()]
 
 bot = telebot.TeleBot('7373916813:AAEnr3G6XNUzbxaXUqDhUtnG6KrpXi7zbjs')
