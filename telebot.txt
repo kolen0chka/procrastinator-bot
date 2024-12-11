@@ -198,7 +198,7 @@ def process_word(message):
         if not user_input.lower().startswith(last_letter.lower()):
             wrong_letter = (
                 f"Город должен начинаться на букву '{last_letter}'. "
-                "Попробуйте ещё раз."
+                "Попробуйте ещё раз. Нажмите \"установить таймер\""
             )
             bot.reply_to(message, wrong_letter)
             return False
