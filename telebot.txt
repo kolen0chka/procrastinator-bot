@@ -27,19 +27,19 @@ def start(message):
     bot.send_message(message.chat.id, start_message, reply_markup=markup)
 
 
-relax_or_session = {"Отдохнуть", "Готовиться к сессии"}
-
-
 @bot.message_handler(func=lambda message: message.text in ["Ты кто?"])
 def introduction(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup |= relax_or_session
+    markup.add("Отдохнуть", "Готовиться к сессии")
     var_message = (
         "Я же сказал, не бойся, я друг! "
         "Я помогу тебе расставлять приоритеты правильно! "
         "Ты хочешь отдохнуть или работать?"
     )
     bot.send_message(message.chat.id, var_message, reply_markup=markup)
+
+
+relax_or_session = ["Отдохнуть", "Готовиться к сессии"]
 
 
 @bot.message_handler(func=lambda message: message.text in relax_or_session)
