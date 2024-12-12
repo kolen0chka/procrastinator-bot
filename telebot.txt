@@ -140,7 +140,7 @@ def get_timer(message):
         else:
             timer_error = (
                 "Таймер можно поставить только на положительное число минут. "
-                "Попробуйте ещё раз."
+                "Попробуйте ещё раз. Нажмите \"Установить таймер\"."
             )
             bot.send_message(message.chat.id, timer_error)
 
@@ -198,7 +198,7 @@ def process_word(message):
         if not user_input.lower().startswith(last_letter.lower()):
             wrong_letter = (
                 f"Город должен начинаться на букву '{last_letter}'. "
-                "Попробуйте ещё раз. Нажмите \"установить таймер\""
+                "Попробуйте ещё раз."
             )
             bot.reply_to(message, wrong_letter)
             return False
